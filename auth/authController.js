@@ -6,9 +6,10 @@ const {v4 : uuidv4} = require('uuid');
 exports.register = async(req, res)=>{
     
         const {username, password} = req.body;
+        console.log("Register route hit");
     try {
         const userCheck = await pool.query(
-            `SELECT * FROM users WHERE username = $1`,
+            'SELECT * FROM users WHERE username = $1',
         [username]
         );
 
@@ -25,9 +26,10 @@ exports.register = async(req, res)=>{
             VALUES($1, $2, $3)`,
             [userId, username, hashedPassword]
         );
-        res.status(200).json({message : "User Created Successfully"});
+        res.status(201).json({message : "User Registerd Successfully"});
     } catch (error) {
-        res.status(500).json(error.message);
+        console.error("Register Error:", err);
+        res.status(500).json({ message: 'Registration failed' });
         
     }
 
@@ -44,14 +46,14 @@ exports.login = async(req,res)=>{
             [username]
         );
         if(result.rows.length === 0){
-            return res.status(400).json({message : "Invalid credentials"})
+            return res.status(400).json({message : "Invalid credentials : User not found"})
         }
 
         const user = result.rows[0];
 
         const isMatch = await bcrypt.compare(password, user.password);
         if(!isMatch){
-            return res.status(400).json({ message: 'Invalid credentials' });
+            return res.status(400).json({ message: 'Invalid credentials : wrong password' });
         }
 
         const token = jwt.sign(
@@ -63,6 +65,7 @@ exports.login = async(req,res)=>{
 
         
     } catch (error) {
-        res.status(500).json(error.message);
+        console.error("Login error:", err.message);
+    return res.status(500).json({ message: 'Internal server error during login' });
     }
 };
