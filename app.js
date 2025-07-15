@@ -6,9 +6,7 @@ const authRoutes = require('./auth/authRoutes.js')
 const gadgetRoutes = require('./routes/gadgetRoutes.js');
 const protect = require('./middleware/authMiddleware.js')
 
-app.get('/ping', (req, res) => {
-  res.send(' Server is live');
-});
+
 app.use(express.json());
 
 
