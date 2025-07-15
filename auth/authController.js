@@ -28,7 +28,7 @@ exports.register = async(req, res)=>{
         );
         res.status(201).json({message : "User Registerd Successfully"});
     } catch (error) {
-        console.error("Register Error:", err);
+        console.error("Register Error:", error);
         res.status(500).json({ message: 'Registration failed' });
         
     }
@@ -38,14 +38,18 @@ exports.register = async(req, res)=>{
 
 //Login
 exports.login = async(req,res)=>{
-    const {username, password} = req.body;
 
     try {
+        console.log("Login attempt received");
+         const {username, password} = req.body;
+         console.log("Email : ",username)
+
         const result = await pool.query(
             `SELECT * FROM users WHERE username = $1`,
             [username]
         );
-        if(result.rows.length === 0){
+
+        if(!result.rows.length){
             return res.status(400).json({message : "Invalid credentials : User not found"})
         }
 
@@ -58,7 +62,7 @@ exports.login = async(req,res)=>{
 
         const token = jwt.sign(
             {userId : user.id},
-            process.env.ACCESS_TOKEN_SECRETE,
+            process.env.ACCESS_TOKEN_SECRET,
             {expiresIn:'1h'}
         );
         res.status(200).json({message : "Login Successful", token});
