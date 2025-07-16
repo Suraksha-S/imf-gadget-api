@@ -6,22 +6,20 @@ const codeNames = ["The Nightingale", "The Kraken", "The Falcon", "The Ghost"];
 //Add the gadget
 exports.addGadget = async (req,res)=>{
     try {
-        const {name, status} = req.body;
-        const userId = req.user.userId;
-        const id = uuidv4();
-        const codename = codeNames[Math.floor(Math.random() * codeNames.length)];  
+        const { name, status } = req.body;
+    const id = uuidv4();
+    const codename = codeNames[Math.floor(Math.random() * codeNames.length)];
+    const userId = req.user.userId;
 
-        const query = `
-        INSERT INTO gadgets (id, name, codename, status)
-        VALUES ($1, $2, $3, $4)
-        RETURNING *;
-        `;
-
-        
-
-        const result = await pool.query(query, [id, name, codename, status, userId]);
-
-       const probability = `${Math.floor(Math.random() * 40) + 60}%`;
+    const query = `
+      INSERT INTO gadgets (id, name, codename, status, user_id)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *;
+    `;
+    
+    const result = await pool.query(query, [id, name, codename, status, userId]);
+    
+    const probability = `${Math.floor(Math.random() * 40) + 60}%`;
        res.status(201).json({
         ...result.rows[0],
         successProbability: probability
