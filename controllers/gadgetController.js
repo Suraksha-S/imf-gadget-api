@@ -12,11 +12,14 @@ exports.addGadget = async (req,res)=>{
 
         const query = `
         INSERT INTO gadgets (id, name, codename, status)
-        VALUES ($1, $2, $3, $4)
+        ALUES ($1, $2, $3, $4)
         RETURNING *;
         `;
 
+        
+
         const result = await pool.query(query, [id, name, codename, status]);
+
        const probability = `${Math.floor(Math.random() * 40) + 60}%`;
        res.status(201).json({
         ...result.rows[0],
