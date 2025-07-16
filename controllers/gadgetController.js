@@ -12,7 +12,7 @@ exports.addGadget = async (req,res)=>{
 
         const query = `
         INSERT INTO gadgets (id, name, codename, status)
-        ALUES ($1, $2, $3, $4)
+        VALUES ($1, $2, $3, $4)
         RETURNING *;
         `;
 
@@ -51,7 +51,10 @@ exports.getGadget = async (req, res)=>{
                 );
             }
 
-
+        const gadgetsWithProbability = result.rows.map(gadget => ({
+            ...gadget,
+            successProbability: `${Math.floor(Math.random() * 40) + 60}%`
+        }));
         
         res.json(gadgetsWithProbability);
     } catch (error) {
@@ -67,16 +70,16 @@ exports.updateGadget = async (req,res)=>{
         const {name, status,codename} = req.body;
         const userId = req.user.userId;
         
-        const query = `
-        INSERT INTO gadgets (id, name, codename, status, user_id)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING *;`;
-
-const result = await pool.query(query, [id, name, codename, status, userId]);
-
-
-        
-        if(result.rows.length === 0){
+       const result = await pool.query(
+      `UPDATE gadgets
+       SET name = $1, status = $2, codename = $3
+       WHERE id = $4
+       RETURNING *`,
+      [name, status, codename, id]
+    );
+    
+    
+    if(result.rows.length === 0){
             return res.status(404).json({message:"Gadget not found"});
         }
         res.status(200).json(result.rows[0]);
