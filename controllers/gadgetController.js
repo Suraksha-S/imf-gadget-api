@@ -37,18 +37,22 @@ exports.getGadget = async (req, res)=>{
     try {
         const status  = req.query.status;
         let result;
+        const userId = req.user.userId;
 
         if(status){
-            result = await pool.query('SELECT * FROM gadgets WHERE status = $1', [status]);
-        }else{
-            result = await pool.query('SELECT * FROM gadgets');
-        }
+            result = await pool.query(
+                'SELECT * FROM gadgets WHERE status = $1 AND user_id = $2',
+                 [status, userId]
+                );
+            } else {
+                 result = await pool.query(
+                    'SELECT * FROM gadgets WHERE user_id = $1',
+                    [userId]
+                );
+            }
 
-        const gadgetsWithProbability = result.rows.map(gadget =>({
-            ...gadget,
-            successProbability : `${Math.floor(Math.random() * 40) + 60}%`,
 
-        }));
+        
         res.json(gadgetsWithProbability);
     } catch (error) {
         res.status(500).json({message  : error.message});
@@ -60,15 +64,18 @@ exports.getGadget = async (req, res)=>{
 exports.updateGadget = async (req,res)=>{
     try {
         const {id} = req.params;
-        const {name, status} = req.body;
+        const {name, status,codename} = req.body;
+        const userId = req.user.userId;
+        
+        const query = `
+        INSERT INTO gadgets (id, name, codename, status, user_id)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *;`;
 
-        const result = await pool.query(
-            `UPDATE gadgets 
-            SET name = $1, status = $2
-            WHERE id = $3
-            RETURNING *`,
-            [name, status, id]
-        );
+const result = await pool.query(query, [id, name, codename, status, userId]);
+
+
+        
         if(result.rows.length === 0){
             return res.status(404).json({message:"Gadget not found"});
         }
@@ -85,6 +92,18 @@ exports.decommissionGadget = async (req,res)=>{
     try {
         const {id} = req.params;
         const decommissionedAt = new Date();
+        const userId = req.user.userId;
+        
+        
+        const check = await pool.query(
+            'SELECT * FROM gadgets WHERE id = $1 AND user_id = $2',
+            [id, userId]
+        );
+        
+        if (check.rows.length === 0) {
+            return res.status(403).json({ message: "You can't update this gadget" });
+        }
+
 
         const result = await pool.query(
             `UPDATE gadgets 
