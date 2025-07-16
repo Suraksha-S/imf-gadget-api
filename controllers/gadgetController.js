@@ -7,6 +7,7 @@ const codeNames = ["The Nightingale", "The Kraken", "The Falcon", "The Ghost"];
 exports.addGadget = async (req,res)=>{
     try {
         const {name, status} = req.body;
+        const userId = req.user.userId;
         const id = uuidv4();
         const codename = codeNames[Math.floor(Math.random() * codeNames.length)];  
 
@@ -18,7 +19,7 @@ exports.addGadget = async (req,res)=>{
 
         
 
-        const result = await pool.query(query, [id, name, codename, status]);
+        const result = await pool.query(query, [id, name, codename, status, userId]);
 
        const probability = `${Math.floor(Math.random() * 40) + 60}%`;
        res.status(201).json({
